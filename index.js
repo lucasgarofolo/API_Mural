@@ -49,38 +49,38 @@ app.get('/recados', async (req, res) => {
   }
 });
 
-/**
- * @route   POST /recados
- * @desc    Adiciona um novo recado no banco de dados
- */
-app.post('/recados', async (req, res) => {
-  try {
-    const { autor, mensagem } = req.body;
+// /**
+//  * @route   POST /recados
+//  * @desc    Adiciona um novo recado no banco de dados
+//  */
+// app.post('/recados', async (req, res) => {
+//   try {
+//     const { autor, mensagem } = req.body;
 
-    // Validação simples: verifica se os campos foram enviados
-    if (!autor || !mensagem) {
-      return res.status(400).json({ error: 'Autor e mensagem são obrigatórios.' });
-    }
+//     // Validação simples: verifica se os campos foram enviados
+//     if (!autor || !mensagem) {
+//       return res.status(400).json({ error: 'Autor e mensagem são obrigatórios.' });
+//     }
 
-    // Insere o novo recado na tabela 'recados'
-    const { data, error } = await supabase
-      .from('recados')
-      .insert([{ autor, mensagem }])
-      .select() // .select() faz com que a query retorne o objeto inserido
-      .single(); // .single() retorna o objeto diretamente em vez de uma lista com um item
+//     // Insere o novo recado na tabela 'recados'
+//     const { data, error } = await supabase
+//       .from('recados')
+//       .insert([{ autor, mensagem }])
+//       .select() // .select() faz com que a query retorne o objeto inserido
+//       .single(); // .single() retorna o objeto diretamente em vez de uma lista com um item
 
-    // Se houver um erro na inserção, retorna erro 500
-    if (error) {
-      throw error;
-    }
+//     // Se houver um erro na inserção, retorna erro 500
+//     if (error) {
+//       throw error;
+//     }
 
-    // Retorna o recado criado com status 201 (Created)
-    res.status(201).json(data);
+//     // Retorna o recado criado com status 201 (Created)
+//     res.status(201).json(data);
 
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao criar recado', details: error.message });
-  }
-});
+//   } catch (error) {
+//     res.status(500).json({ error: 'Erro ao criar recado', details: error.message });
+//   }
+// });
 
 
 // === INICIAR SERVIDOR ===
