@@ -145,7 +145,7 @@ app.post('/api/editar-imagem', upload.single('imagem'), async (req, res) => {
     const analysisPrompt = 'Descreva esta imagem em detalhes para que um artista de IA possa recriá-la.';
 
     const chatPayload = {
-      model: 'gpt-4o',
+      model: "gpt-4o-mini",
       messages: [
         {
           role: 'system',
@@ -184,9 +184,9 @@ app.post('/api/editar-imagem', upload.single('imagem'), async (req, res) => {
     const promptFinal = `${descricaoGerada}\nA imagem deve ser recriada no seguinte estilo: ${tema}.`;
 
     const imageGenPayload = {
-      model: 'dall-e-3',
+      model: "dall-e-2",
       prompt: promptFinal,
-      size: '1024x1024'
+      size: '300x300'
     };
 
     const imageResponse = await axios.post(
