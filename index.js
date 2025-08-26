@@ -186,7 +186,7 @@ app.post('/api/editar-imagem', upload.single('imagem'), async (req, res) => {
     const imageGenPayload = {
       model: "dall-e-2",
       prompt: promptFinal,
-      size: '300x300'
+      size: '256x256'
     };
 
     const imageResponse = await axios.post(
