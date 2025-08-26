@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "@supabase/storage-js": "^2.11.0",
-    "@supabase/supabase-js": "^2.55.0",
+    "@supabase/supabase-js": "^2.56.0",
     "@types/uuid": "^10.0.0",
     "axios": "^1.11.0",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",

@@ -5,6 +5,7 @@ const cors = require('cors');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 require('dotenv').config();
 
 // Configuração do Supabase
@@ -119,6 +120,108 @@ app.post("/photo", upload.single('image'), async (req, res) => {
     res.status(500).json({ 
       error: 'Erro ao processar a foto',
       details: error.message 
+    });
+  }
+});
+
+// Rota POST /api/editar-imagem - Editor de imagens com IA
+app.post('/api/editar-imagem', upload.single('imagem'), async (req, res) => {
+  try {
+    const file = req.file;
+    const { tema } = req.body;
+
+    if (!file || !tema) {
+      return res.status(400).json({
+        error: 'Dados incompletos. Envie a imagem (campo: imagem) e o tema (campo: tema).'
+      });
+    }
+
+    // Converte o buffer para Data URL Base64 com prefixo MIME
+    const mimeType = file.mimetype || 'image/jpeg';
+    const base64 = file.buffer.toString('base64');
+    const dataUrl = `data:${mimeType};base64,${base64}`;
+
+    // Passo 1: Análise da imagem (GPT-4o)
+    const analysisPrompt = 'Descreva esta imagem em detalhes para que um artista de IA possa recriá-la.';
+
+    const chatPayload = {
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'Você é um assistente especializado em descrever imagens de forma minuciosa, objetiva e útil para recriação por IA.'
+        },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: analysisPrompt },
+            { type: 'image_url', image_url: { url: dataUrl } }
+          ]
+        }
+      ]
+    };
+
+    const chatResponse = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      chatPayload,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const descricaoGerada = chatResponse?.data?.choices?.[0]?.message?.content?.trim();
+
+    if (!descricaoGerada) {
+      return res.status(502).json({
+        error: 'Falha ao obter descrição da imagem pela IA.'
+      });
+    }
+
+    // Passo 2: Geração da nova imagem (DALL-E 3)
+    const promptFinal = `${descricaoGerada}\nA imagem deve ser recriada no seguinte estilo: ${tema}.`;
+
+    const imageGenPayload = {
+      model: 'dall-e-3',
+      prompt: promptFinal,
+      size: '1024x1024'
+    };
+
+    const imageResponse = await axios.post(
+      'https://api.openai.com/v1/images/generations',
+      imageGenPayload,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const novaImagemUrl = imageResponse?.data?.data?.[0]?.url;
+
+    if (!novaImagemUrl) {
+      return res.status(502).json({
+        error: 'Falha ao gerar a nova imagem com o DALL-E 3.'
+      });
+    }
+
+    return res.status(200).json({ novaImagemUrl });
+  } catch (error) {
+    // Log estendido para diagnóstico
+    const apiErrorData = error?.response?.data;
+    console.error('Erro em /api/editar-imagem:', {
+      message: error?.message,
+      status: error?.response?.status,
+      data: apiErrorData
+    });
+
+    return res.status(500).json({
+      error: 'Erro ao processar a edição da imagem com IA.',
+      details: error?.message,
+      api: error?.response?.data
     });
   }
 });
