@@ -158,7 +158,8 @@ app.post('/api/editar-imagem', upload.single('imagem'), async (req, res) => {
             { type: 'image_url', image_url: { url: dataUrl } }
           ]
         }
-      ]
+      ],
+      max_tokens: 200
     };
 
     const chatResponse = await axios.post(
